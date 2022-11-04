@@ -141,8 +141,37 @@ class RenderTrajectory:
         elif self.traj == "filename":
             with open(self.camera_path_filename, "r", encoding="utf-8") as f:
                 camera_path = json.load(f)
-            seconds = camera_path["seconds"]
-            camera_path = get_path_from_json(camera_path)
+
+            # if self.camera_path_filename == 'transforms.json':
+            import numpy as np
+            image_height = camera_path["h"]
+            image_width = camera_path["w"]
+            fl_x = camera_path["fl_x"]
+            fl_y = camera_path["fl_y"]
+
+            c2ws = []
+            fxs = []
+            fys = []
+            for frame in camera_path["frames"]:
+                c2w = torch.tensor(np.array(frame["transform_matrix"]))[:3]
+                c2ws.append(c2w)
+                fxs.append(fl_x)
+                fys.append(fl_y)
+
+            camera_to_worlds = torch.stack(c2ws, dim=0)
+            fx = torch.tensor(fxs)
+            fy = torch.tensor(fys)
+            camera_path = Cameras(
+                fx=fx,
+                fy=fy,
+                cx=image_width / 2,
+                cy=image_height / 2,
+                camera_to_worlds=camera_to_worlds,
+            )
+
+            # else:
+            #     seconds = camera_path["seconds"]
+            #     camera_path = get_path_from_json(camera_path)
         else:
             assert_never(self.traj)
 
