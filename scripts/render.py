@@ -85,7 +85,7 @@ def _render_trajectory_video(
                 images.append(image)
 
     if output_format == "video":
-        fps = len(images) / seconds
+        fps = 10  # len(images) / seconds
         # make the folder if it doesn't exist
         output_filename.parent.mkdir(parents=True, exist_ok=True)
         with CONSOLE.status("[yellow]Saving video", spinner="bouncingBall"):
