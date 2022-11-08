@@ -149,12 +149,14 @@ class Trainer:
                     for callback in self.callbacks:
                         callback.run_callback_at_location(step, location=TrainingCallbackLocation.AFTER_TRAIN_ITERATION)
 
-                writer.put_time(
-                    name=EventName.TRAIN_RAYS_PER_SEC,
-                    duration=self.config.pipeline.datamanager.train_num_rays_per_batch / train_t.duration,
-                    step=step,
-                    avg_over_steps=True,
-                )
+                # Skip the first two steps to avoid skewed timings that break the viewer rendering speed estimate.
+                if step > 1:
+                    writer.put_time(
+                        name=EventName.TRAIN_RAYS_PER_SEC,
+                        duration=self.config.pipeline.datamanager.train_num_rays_per_batch / train_t.duration,
+                        step=step,
+                        avg_over_steps=True,
+                    )
 
                 self._update_viewer_state(step)
 
@@ -172,6 +174,9 @@ class Trainer:
                 writer.write_out_storage()
             # save checkpoint at the end of training
             self.save_checkpoint(step)
+            CONSOLE.rule()
+            CONSOLE.print("[bold green]:tada: :tada: :tada: Training Finished :tada: :tada: :tada:", justify="center")
+            CONSOLE.print("Use ctrl+c to quit", justify="center")
             self._always_render(step)
 
     @check_main_thread
